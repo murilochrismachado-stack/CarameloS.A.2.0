@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Patas em Casa — Adoção responsável de pets</title>
+  <title>Patas em Casa — Adoção responsável e Casa de Ração</title>
 
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%90%BE%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -12,7 +12,7 @@
 <body>
 
   <!-- ==========================================================
-       CABEÇALHO COM AS TRÊS ABAS
+       CABEÇALHO COM AS ABAS
        ========================================================== -->
   <header class="cabecalho">
     <div class="container barra">
@@ -20,6 +20,7 @@
       <nav class="abas" aria-label="Navegação principal">
         <a class="aba" href="#sobre">Sobre nós</a>
         <a class="aba" href="#pets">Pets</a>
+        <a class="aba" href="#loja">Loja</a>
         <a class="aba" href="#entrar" id="aba-entrar">Entrar</a>
       </nav>
     </div>
@@ -36,7 +37,7 @@
           <p>Resgatamos, cuidamos e conectamos cães e gatos a famílias que querem amar de verdade. Cada adoção é acompanhada de perto, do primeiro contato aos primeiros meses em casa.</p>
           <div class="acoes">
             <a class="botao" href="#pets">Conhecer os pets</a>
-            <a class="botao contorno" href="#entrar">Entrar</a>
+            <a class="botao contorno" href="#loja">Visitar a loja</a>
           </div>
         </div>
         <img src="{{ url_for('static', filename='img/sobre-nos-principal.jpg') }}" alt="Três cães que buscam um lar, sentados lado a lado">
@@ -88,20 +89,131 @@
       <div class="lista-pets" id="lista-pets"></div>
     </section>
 
-    <!-- ===== ABA 3: ENTRAR ===== -->
+    <!-- ===== ABA EXTRA: FORMULÁRIO DE ADOÇÃO (ENDEREÇO E VACINAS) ===== -->
+    <section class="pagina" id="pagina-adotar">
+      <div class="login" style="max-width: 560px;">
+        <span class="selo">Passo final da adoção</span>
+        <h2 style="margin-top: 12px;" id="adotar-titulo">Adotar pet</h2>
+        <p class="subtitulo" id="adotar-subtitulo">Preencha os dados do novo lar e o compromisso de vacinação.</p>
+
+        <form id="form-adotar" novalidate>
+          <label>Endereço completo (Rua, Número, Bairro, Cidade)
+            <input type="text" id="adotar-endereco" placeholder="Ex: Rua das Flores, 123 - Centro" required>
+          </label>
+          <label>Situação e compromisso com as vacinas
+            <textarea id="adotar-vacinas" rows="3" placeholder="Ex: Já possuo carteira de vacinação de outros pets e comprometo-me a manter todas as doses em dia." required></textarea>
+          </label>
+          <div class="erro" id="adotar-erro" role="alert"></div>
+          <div class="acoes">
+            <button class="botao" type="submit">Confirmar adoção</button>
+            <a class="botao contorno" href="#pets">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== ABA 3: LOJA (CASA DE RAÇÃO E BRINQUEDOS) ===== -->
+    <section class="pagina" id="pagina-loja">
+      <h2>Casa de Ração & Brinquedos</h2>
+      <p class="subtitulo">Tudo o que seu cão ou gato precisa, com parte da renda revertida para o abrigo.</p>
+
+      <div class="filtros" role="group" aria-label="Filtrar produtos">
+        <button class="filtro-loja filtro" data-filtro="todos" aria-pressed="true" type="button">Todos</button>
+        <button class="filtro-loja filtro" data-filtro="racao" aria-pressed="false" type="button">Rações</button>
+        <button class="filtro-loja filtro" data-filtro="brinquedo" aria-pressed="false" type="button">Brinquedos</button>
+        <button class="filtro-loja filtro" data-filtro="cao" aria-pressed="false" type="button">Para Cães</button>
+        <button class="filtro-loja filtro" data-filtro="gato" aria-pressed="false" type="button">Para Gatos</button>
+      </div>
+
+      <!-- Carrinho de Compras -->
+      <div class="cartao carrinho-box" id="carrinho-box">
+        <div class="carrinho-topo">
+          <div>
+            <h3>🛒 Seu Carrinho (<span id="carrinho-qtd">0</span> itens)</h3>
+            <p id="carrinho-itens-texto">Nenhum item adicionado ainda.</p>
+          </div>
+          <div class="carrinho-total-area">
+            <b class="preco-destaque" id="carrinho-total">R$ 0,00</b>
+            <div class="acoes" style="margin-top: 8px;">
+              <button class="botao" id="btn-finalizar-compra" type="button">Finalizar compra</button>
+              <button class="botao contorno" id="btn-limpar-carrinho" type="button">Limpar</button>
+            </div>
+          </div>
+        </div>
+        <div class="aviso" id="loja-aviso" role="status" style="margin-top: 10px;"></div>
+      </div>
+
+      <!-- Grade de Produtos (mesmo layout visual dos pets) -->
+      <div class="lista-pets" id="lista-produtos" style="margin-top: 28px;"></div>
+    </section>
+
+    <!-- ===== ABA 4: ENTRAR / PAINEL CLIENTE / PAINEL ADMIN ===== -->
     <section class="pagina" id="pagina-entrar">
-      <div class="login">
+      <!-- Formulário de Login -->
+      <div class="login" id="box-login">
         <h2 id="login-titulo">Entrar</h2>
-        <p class="subtitulo" id="login-texto">Acesse sua conta ou cadastre-se automaticamente para adotar.</p>
+        <p class="subtitulo" id="login-texto">Acesse sua conta ou cadastre-se automaticamente para adotar e comprar.</p>
         <form id="form-login" novalidate>
           <label>E-mail <input type="email" id="email" autocomplete="email" placeholder="voce@email.com"></label>
           <label>Senha <input type="password" id="senha" autocomplete="current-password" placeholder="Mínimo de 6 caracteres"></label>
           <div class="erro" id="erro" role="alert"></div>
           <button class="botao" type="submit">Entrar</button>
-          <p class="nota">Se for seu primeiro acesso, sua conta será criada automaticamente.</p>
+          <p class="nota">Conta Admin de teste: <b>admin@patasemcasa.com</b> | Senha: <b>admin123</b></p>
         </form>
-        <div id="area-logado" hidden>
-          <button class="botao contorno" id="sair" type="button">Sair da conta</button>
+      </div>
+
+      <!-- Área Logada: CLIENTE -->
+      <div id="area-cliente" hidden>
+        <div class="barra-painel">
+          <div>
+            <span class="selo">Área do Adotante</span>
+            <h2 style="margin-top: 8px;" id="cliente-boas-vindas">Olá!</h2>
+          </div>
+          <button class="botao contorno" id="sair-cliente" type="button">Sair da conta</button>
+        </div>
+
+        <div class="bloco" style="margin-top: 32px;">
+          <h3>🐾 Meus Pets Adotados & Acompanhamento</h3>
+          <p class="subtitulo">Veja como está a saúde e adaptação do seu amigo.</p>
+          <div class="lista-pets" id="cliente-lista-adocoes"></div>
+        </div>
+
+        <div class="bloco" style="margin-top: 40px;">
+          <h3>🛍️ Minhas Compras na Loja</h3>
+          <p class="subtitulo">Histórico dos seus pedidos de rações e brinquedos.</p>
+          <div class="valores" id="cliente-lista-compras"></div>
+        </div>
+      </div>
+
+      <!-- Área Logada: ADMINISTRATIVO -->
+      <div id="area-admin" hidden>
+        <div class="barra-painel">
+          <div>
+            <span class="selo">Painel Administrativo</span>
+            <h2 style="margin-top: 8px;">Gestão Patas em Casa</h2>
+          </div>
+          <button class="botao contorno" id="sair-admin" type="button">Sair da conta</button>
+        </div>
+
+        <!-- Gráfico de Adoções -->
+        <div class="cartao" style="margin-top: 28px;">
+          <h3>📊 Gráfico de Adoções</h3>
+          <p class="subtitulo" style="margin-bottom: 16px;">Acompanhamento geral de pets adotados vs. disponíveis.</p>
+          <div class="grafico-container" id="admin-grafico"></div>
+        </div>
+
+        <!-- Lista de Adoções Realizadas -->
+        <div class="bloco" style="margin-top: 40px;">
+          <h3>🏠 Pets Adotados e Adotantes</h3>
+          <p class="subtitulo">Acompanhe quem adotou cada pet, endereço, vacinas e atualize o status.</p>
+          <div class="valores" id="admin-lista-adocoes"></div>
+        </div>
+
+        <!-- Lista de Compras da Loja -->
+        <div class="bloco" style="margin-top: 40px;">
+          <h3>💰 Compras Realizadas na Loja</h3>
+          <p class="subtitulo">Pedidos de rações e brinquedos feitos pelos clientes.</p>
+          <div class="valores" id="admin-lista-compras"></div>
         </div>
       </div>
     </section>
@@ -109,7 +221,7 @@
   </main>
 
   <footer class="rodape">
-    <div class="container">🐾 Patas em Casa · Adoção Responsável</div>
+    <div class="container">🐾 Patas em Casa · Adoção Responsável & Casa de Ração</div>
   </footer>
 
   <!-- Janela com os detalhes de um pet -->

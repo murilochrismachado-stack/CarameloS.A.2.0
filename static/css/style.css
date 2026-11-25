@@ -1,46 +1,36 @@
 /* ==========================================================
-   1. CORES E MEDIDAS
+   1. CORES E MEDIDAS — REGRA 60-30-10
+      60% Dominante (Leveza): #FDFBF7 (fundo) e #FFFFFF (superfície)
+      30% Secundária (Aconchego): #E4F0EA (realce) e #2D4A3E (texto)
+      10% Destaque (Alegria): #F27A54 (marca / botões / ações)
    ========================================================== */
 :root {
-  --fundo: #fff8f2;
-  --superficie: #ffffff;
-  --texto: #2b1d17;
-  --texto-suave: #6f5b50;
-  --marca: #e8633f;
-  --marca-escura: #c84a28;
+  --fundo: #fdfbf7;              /* 60% - Fundo creme super leve */
+  --superficie: #ffffff;         /* 60% - Cartões brancos limpos */
+  --texto: #2d4a3e;              /* 30% - Verde floresta aconchegante */
+  --texto-suave: #5f7a6e;        /* 30% - Verde sálvia médio */
+  --marca: #f27a54;              /* 10% - Coral alegre e acolhedor */
+  --marca-escura: #d65a35;       /* 10% - Hover do destaque */
   --texto-sobre-marca: #ffffff;
-  --realce: #ffe6d6;
-  --borda: #f0d9c8;
+  --realce: #e4f0ea;             /* 30% - Verde menta suave (etapas e etiquetas) */
+  --borda: #d5e5dd;              /* 30% - Borda suave */
   --raio: 20px;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --fundo: #1b1411;
-    --superficie: #261c17;
-    --texto: #fbeee4;
-    --texto-suave: #c3ab9b;
-    --marca: #ff8a63;
-    --marca-escura: #ffa687;
-    --texto-sobre-marca: #1b1411;
-    --realce: #3a271e;
-    --borda: #46322a;
+    --fundo: #151f1b;
+    --superficie: #1e2b26;
+    --texto: #edf5f1;
+    --texto-suave: #a8c2b7;
+    --marca: #f48c6b;
+    --marca-escura: #ffa588;
+    --texto-sobre-marca: #151f1b;
+    --realce: #273831;
+    --borda: #32473e;
     color-scheme: dark;
   }
-}
-
-:root[data-theme="dark"] {
-  --fundo: #1b1411;
-  --superficie: #261c17;
-  --texto: #fbeee4;
-  --texto-suave: #c3ab9b;
-  --marca: #ff8a63;
-  --marca-escura: #ffa687;
-  --texto-sobre-marca: #1b1411;
-  --realce: #3a271e;
-  --borda: #46322a;
-  color-scheme: dark;
 }
 
 /* ==========================================================
@@ -142,7 +132,7 @@ h2 {
   padding: 6px 14px;
   border-radius: 999px;
   background: var(--realce);
-  color: var(--marca-escura);
+  color: var(--texto);
   font-weight: 700;
   font-size: 0.85rem;
 }
@@ -157,7 +147,7 @@ h2 {
   padding: 3px 10px;
   border-radius: 999px;
   background: var(--realce);
-  color: var(--marca-escura);
+  color: var(--texto);
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -195,6 +185,7 @@ h2 {
 .abas {
   display: flex;
   gap: 4px;
+  flex-wrap: wrap;
 }
 
 .aba {
@@ -273,7 +264,7 @@ h2 {
 .etapas {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .cartao {
@@ -356,7 +347,7 @@ h2 {
   border-color: var(--superficie);
 }
 
-/* --- Página: Pets --- */
+/* --- Página: Pets e Loja --- */
 .filtros {
   display: flex;
   gap: 8px;
@@ -426,6 +417,26 @@ h2 {
   text-align: center;
 }
 
+.preco-destaque {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--marca);
+}
+
+/* Carrinho */
+.carrinho-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.carrinho-total-area {
+  text-align: right;
+}
+
+/* Janela de detalhes do pet */
 dialog {
   width: min(560px, calc(100% - 32px));
   padding: 0;
@@ -463,7 +474,7 @@ dialog img {
   min-height: 1.4em;
 }
 
-/* --- Página: Entrar --- */
+/* --- Formulários, Login e Painéis --- */
 .login {
   max-width: 420px;
   margin: 0 auto;
@@ -486,7 +497,9 @@ dialog img {
   font-size: 0.9rem;
 }
 
-.login input {
+.login input,
+.login textarea,
+.input-inline {
   padding: 12px 14px;
   border-radius: 12px;
   border: 2px solid var(--borda);
@@ -495,7 +508,9 @@ dialog img {
   font: inherit;
 }
 
-.login input:focus {
+.login input:focus,
+.login textarea:focus,
+.input-inline:focus {
   outline: none;
   border-color: var(--marca);
 }
@@ -509,6 +524,49 @@ dialog img {
   color: #d6361f;
   font-weight: 700;
   min-height: 1.4em;
+}
+
+.barra-painel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--borda);
+}
+
+/* Gráfico Administrativo */
+.grafico-container {
+  display: grid;
+  gap: 14px;
+}
+
+.barra-grafico-item {
+  display: grid;
+  gap: 6px;
+}
+
+.barra-grafico-topo {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.barra-grafico-trilha {
+  width: 100%;
+  height: 16px;
+  background: var(--realce);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barra-grafico-preenchimento {
+  height: 100%;
+  background: var(--marca);
+  border-radius: 999px;
+  transition: width 0.5s ease;
 }
 
 /* ==========================================================
@@ -534,5 +592,8 @@ dialog img {
   }
   .aba {
     padding: 8px 12px;
+  }
+  .carrinho-total-area {
+    text-align: left;
   }
 }
