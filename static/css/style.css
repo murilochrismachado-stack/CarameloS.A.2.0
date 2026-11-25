@@ -1,0 +1,538 @@
+/* ==========================================================
+   1. CORES E MEDIDAS
+   ========================================================== */
+:root {
+  --fundo: #fff8f2;
+  --superficie: #ffffff;
+  --texto: #2b1d17;
+  --texto-suave: #6f5b50;
+  --marca: #e8633f;
+  --marca-escura: #c84a28;
+  --texto-sobre-marca: #ffffff;
+  --realce: #ffe6d6;
+  --borda: #f0d9c8;
+  --raio: 20px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fundo: #1b1411;
+    --superficie: #261c17;
+    --texto: #fbeee4;
+    --texto-suave: #c3ab9b;
+    --marca: #ff8a63;
+    --marca-escura: #ffa687;
+    --texto-sobre-marca: #1b1411;
+    --realce: #3a271e;
+    --borda: #46322a;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --fundo: #1b1411;
+  --superficie: #261c17;
+  --texto: #fbeee4;
+  --texto-suave: #c3ab9b;
+  --marca: #ff8a63;
+  --marca-escura: #ffa687;
+  --texto-sobre-marca: #1b1411;
+  --realce: #3a271e;
+  --borda: #46322a;
+  color-scheme: dark;
+}
+
+/* ==========================================================
+   2. BASE E ACESSIBILIDADE
+   ========================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.6;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--fundo);
+  z-index: 30;
+}
+
+:focus-visible {
+  outline: 3px solid var(--marca);
+  outline-offset: 2px;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+h1, h2, h3 {
+  line-height: 1.15;
+  margin: 0;
+}
+
+h2 {
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.subtitulo {
+  color: var(--texto-suave);
+  margin: 8px 0 28px;
+}
+
+/* ==========================================================
+   3. COMPONENTES REUTILIZÁVEIS
+   ========================================================== */
+.botao {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 999px;
+  border: 2px solid var(--marca);
+  background: var(--marca);
+  color: var(--texto-sobre-marca);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.botao:hover {
+  background: var(--marca-escura);
+  border-color: var(--marca-escura);
+}
+
+.botao.contorno {
+  background: transparent;
+  color: var(--texto);
+  border-color: var(--borda);
+}
+
+.botao.contorno:hover {
+  border-color: var(--marca);
+}
+
+.selo {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--realce);
+  color: var(--marca-escura);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.etiquetas {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.etiquetas span {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--realce);
+  color: var(--marca-escura);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* ==========================================================
+   4. CABEÇALHO E ABAS
+   ========================================================== */
+.cabecalho {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 20;
+  background: var(--fundo);
+  border-bottom: 1px solid var(--borda);
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 64px;
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 1.2rem;
+  text-decoration: none;
+  color: var(--texto);
+}
+
+.logo b {
+  color: var(--marca);
+}
+
+.abas {
+  display: flex;
+  gap: 4px;
+}
+
+.aba {
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: var(--texto-suave);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.aba:hover {
+  color: var(--marca);
+}
+
+.aba[aria-current="page"] {
+  background: var(--marca);
+  color: var(--texto-sobre-marca);
+}
+
+/* ==========================================================
+   5. PÁGINAS
+   ========================================================== */
+.pagina {
+  display: none;
+  padding: 48px 0 64px;
+}
+
+.pagina.ativa {
+  display: block;
+}
+
+.abertura {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.abertura h1 {
+  font-size: clamp(2.1rem, 5vw, 3.3rem);
+  margin: 16px 0;
+}
+
+.abertura h1 em {
+  color: var(--marca);
+  font-style: normal;
+}
+
+.abertura p {
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+  max-width: 520px;
+}
+
+.abertura img {
+  width: 100%;
+  max-height: 500px;
+  object-fit: cover;
+  object-position: center 60%;
+  border-radius: 28px;
+}
+
+.acoes {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.bloco {
+  margin-top: 64px;
+}
+
+.numeros,
+.valores,
+.etapas {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.cartao {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 22px;
+}
+
+.cartao h3 {
+  margin-bottom: 6px;
+}
+
+.cartao p {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.numero {
+  text-align: center;
+}
+
+.numero b {
+  display: block;
+  font-size: 2rem;
+  color: var(--marca);
+}
+
+.numero span {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.etapas {
+  counter-reset: etapa;
+}
+
+.etapa {
+  background: var(--realce);
+  border-radius: var(--raio);
+  padding: 22px;
+  counter-increment: etapa;
+}
+
+.etapa::before {
+  content: counter(etapa);
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  background: var(--marca);
+  color: var(--texto-sobre-marca);
+  font-weight: 800;
+}
+
+.etapa h3 {
+  margin-bottom: 6px;
+}
+
+.etapa p {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.chamada {
+  margin-top: 64px;
+  padding: 40px 24px;
+  border-radius: 32px;
+  background: var(--marca);
+  color: var(--texto-sobre-marca);
+  text-align: center;
+}
+
+.chamada .botao {
+  margin-top: 16px;
+  background: var(--superficie);
+  color: var(--texto);
+  border-color: var(--superficie);
+}
+
+/* --- Página: Pets --- */
+.filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.filtro {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 2px solid var(--borda);
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filtro[aria-pressed="true"] {
+  background: var(--marca);
+  border-color: var(--marca);
+  color: var(--texto-sobre-marca);
+}
+
+.lista-pets {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.pet {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 24px;
+}
+
+.pet img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.pet-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  padding: 18px;
+}
+
+.pet-corpo h3 {
+  font-size: 1.2rem;
+}
+
+.pet-corpo p {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+}
+
+.pet-corpo .botao {
+  margin-top: auto;
+  text-align: center;
+}
+
+dialog {
+  width: min(560px, calc(100% - 32px));
+  padding: 0;
+  border: 0;
+  border-radius: 24px;
+  background: var(--superficie);
+  color: var(--texto);
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+dialog img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.dialogo-corpo {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+}
+
+.dialogo-corpo p {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.aviso {
+  font-weight: 700;
+  color: var(--marca-escura);
+  min-height: 1.4em;
+}
+
+/* --- Página: Entrar --- */
+.login {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 32px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 28px;
+}
+
+.login form {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.login label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.login input {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 2px solid var(--borda);
+  background: var(--fundo);
+  color: var(--texto);
+  font: inherit;
+}
+
+.login input:focus {
+  outline: none;
+  border-color: var(--marca);
+}
+
+.nota {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+.erro {
+  color: #d6361f;
+  font-weight: 700;
+  min-height: 1.4em;
+}
+
+/* ==========================================================
+   6. RODAPÉ E CELULAR
+   ========================================================== */
+.rodape {
+  padding: 28px 0;
+  border-top: 1px solid var(--borda);
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 760px) {
+  .abertura {
+    grid-template-columns: 1fr;
+  }
+  .logo {
+    display: none;
+  }
+  .barra {
+    justify-content: center;
+  }
+  .aba {
+    padding: 8px 12px;
+  }
+}
