@@ -143,7 +143,7 @@
         <div class="aviso" id="loja-aviso" role="status" style="margin-top: 10px;"></div>
       </div>
 
-      <!-- Grade de Produtos (mesmo layout visual dos pets) -->
+      <!-- Grade de Produtos -->
       <div class="lista-pets" id="lista-produtos" style="margin-top: 28px;"></div>
     </section>
 
@@ -200,6 +200,68 @@
           <h3>📊 Gráfico de Adoções</h3>
           <p class="subtitulo" style="margin-bottom: 16px;">Acompanhamento geral de pets adotados vs. disponíveis.</p>
           <div class="grafico-container" id="admin-grafico"></div>
+        </div>
+
+        <!-- Cadastrar Novo Produto na Loja -->
+        <div class="cartao" style="margin-top: 32px;">
+          <h3>🏷️ Colocar Produto à Venda na Loja</h3>
+          <p class="subtitulo" style="margin-bottom: 16px;">Adicione rações ou brinquedos que aparecerão imediatamente na aba Loja.</p>
+
+          <form id="form-novo-produto" style="display: grid; gap: 14px;" enctype="multipart/form-data">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+              <label style="display: grid; gap: 6px; font-weight: 700; font-size: 0.9rem;">
+                Nome do produto
+                <input class="input-inline" type="text" name="nome" placeholder="Ex: Ração Golden 15kg" required>
+              </label>
+              <label style="display: grid; gap: 6px; font-weight: 700; font-size: 0.9rem;">
+                Preço (R$)
+                <input class="input-inline" type="number" step="0.01" min="0.10" name="preco" placeholder="Ex: 149.90" required>
+              </label>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
+              <label style="display: grid; gap: 6px; font-weight: 700; font-size: 0.9rem;">
+                Categoria
+                <select class="input-inline" name="categoria">
+                  <option value="racao">Ração</option>
+                  <option value="brinquedo">Brinquedo</option>
+                </select>
+              </label>
+              <label style="display: grid; gap: 6px; font-weight: 700; font-size: 0.9rem;">
+                Indicado para
+                <select class="input-inline" name="animal">
+                  <option value="cao">Cães</option>
+                  <option value="gato">Gatos</option>
+                  <option value="cao,gato">Cães e Gatos</option>
+                </select>
+              </label>
+              <label style="display: grid; gap: 6px; font-weight: 700; font-size: 0.9rem;">
+                Etiqueta extra (opcional)
+                <input class="input-inline" type="text" name="etiqueta_extra" placeholder="Ex: 15kg ou Mordedor">
+              </label>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+              <label style="display: grid; gap: 6px; font-weight: 700; font-size: 0.9rem;">
+                Descrição curta
+                <input class="input-inline" type="text" name="resumo" placeholder="Ex: Ração premium sabor carne para adultos" required>
+              </label>
+              <label style="display: grid; gap: 6px; font-weight: 700; font-size: 0.9rem;">
+                Foto do produto (opcional)
+                <input class="input-inline" type="file" name="foto" accept="image/*">
+              </label>
+            </div>
+
+            <div class="aviso" id="admin-produto-aviso" role="status"></div>
+            <div>
+              <button class="botao" type="submit">Publicar produto na loja</button>
+            </div>
+          </form>
+
+          <div style="margin-top: 24px;">
+            <h4>Produtos ativos na loja</h4>
+            <div class="valores" id="admin-lista-produtos" style="margin-top: 12px;"></div>
+          </div>
         </div>
 
         <!-- Lista de Adoções Realizadas -->

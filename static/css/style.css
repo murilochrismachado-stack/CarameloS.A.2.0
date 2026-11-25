@@ -5,15 +5,15 @@
       10% Destaque (Alegria): #F27A54 (marca / botões / ações)
    ========================================================== */
 :root {
-  --fundo: #fdfbf7;              /* 60% - Fundo creme super leve */
-  --superficie: #ffffff;         /* 60% - Cartões brancos limpos */
-  --texto: #2d4a3e;              /* 30% - Verde floresta aconchegante */
-  --texto-suave: #5f7a6e;        /* 30% - Verde sálvia médio */
-  --marca: #f27a54;              /* 10% - Coral alegre e acolhedor */
-  --marca-escura: #d65a35;       /* 10% - Hover do destaque */
+  --fundo: #fdfbf7;
+  --superficie: #ffffff;
+  --texto: #2d4a3e;
+  --texto-suave: #5f7a6e;
+  --marca: #f27a54;
+  --marca-escura: #d65a35;
   --texto-sobre-marca: #ffffff;
-  --realce: #e4f0ea;             /* 30% - Verde menta suave (etapas e etiquetas) */
-  --borda: #d5e5dd;              /* 30% - Borda suave */
+  --realce: #e4f0ea;
+  --borda: #d5e5dd;
   --raio: 20px;
   color-scheme: light;
 }
@@ -75,7 +75,7 @@ img {
   display: block;
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
   line-height: 1.15;
   margin: 0;
 }

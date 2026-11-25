@@ -1,8 +1,10 @@
 import os
+import uuid
 import urllib.parse
 import mysql.connector
 from flask import Flask, render_template, request, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,6 +14,10 @@ app.secret_key = os.environ.get('SECRET_KEY', 'patas_em_casa_chave_padrao_2026')
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CA_PEM_PATH = os.path.join(BASE_DIR, 'ca.pem')
+
+# Pasta para uploads de fotos de produtos pelo administrador
+UPLOAD_PRODUTOS_FOLDER = os.path.join(BASE_DIR, 'static', 'img', 'produtos')
+os.makedirs(UPLOAD_PRODUTOS_FOLDER, exist_ok=True)
 
 database_url = os.environ.get('DATABASE_URL')
 
@@ -23,7 +29,8 @@ if database_url:
         'password': parsed_url.password,
         'port': parsed_url.port or 3306,
         'ssl_ca': CA_PEM_PATH if os.path.exists(CA_PEM_PATH) else None,
-        'ssl_disabled': not os.path.exists(CA_PEM_PATH)
+        'ssl_disabled': not os.path.exists(CA_PEM_PATH),
+        'connection_timeout': 15
     }
     DB_NAME = parsed_url.path.lstrip('/')
 else:
@@ -31,7 +38,8 @@ else:
         'host': os.environ.get('DB_HOST', 'localhost'),
         'user': os.environ.get('DB_USER', 'root'),
         'password': os.environ.get('DB_PASSWORD', ''),
-        'port': int(os.environ.get('DB_PORT', 3306))
+        'port': int(os.environ.get('DB_PORT', 3306)),
+        'connection_timeout': 15
     }
     DB_NAME = os.environ.get('DB_NAME', 'patas_em_casa_db')
 
@@ -56,7 +64,7 @@ def init_db():
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # 1. Tabela de Usuários (com tipo: 'cliente' ou 'admin')
+        # 1. Tabela de Usuários
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS usuarios (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -66,6 +74,15 @@ def init_db():
                 criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        # Migração automática caso a tabela 'usuarios' já exista sem a coluna 'tipo'
+        cursor.execute("""
+            SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = %s AND TABLE_NAME = 'usuarios' AND COLUMN_NAME = 'tipo'
+        """, (DB_NAME,))
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("ALTER TABLE usuarios ADD COLUMN tipo ENUM('cliente', 'admin') DEFAULT 'cliente'")
+            print("Coluna 'tipo' adicionada à tabela usuarios com sucesso!")
 
         # 2. Tabela de Pets
         cursor.execute("""
@@ -82,7 +99,7 @@ def init_db():
             )
         """)
 
-        # 3. Tabela de Adoções (com endereço, vacinas e acompanhamento)
+        # 3. Tabela de Adoções
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS adocoes (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -122,15 +139,23 @@ def init_db():
             )
         """)
 
-        # Cria conta administrativa padrão se não existir
+        # Garante a criação ou atualização da conta administrativa padrão
         cursor.execute("SELECT id FROM usuarios WHERE email = 'admin@patasemcasa.com'")
-        if not cursor.fetchone():
+        admin_existente = cursor.fetchone()
+        senha_admin_hash = generate_password_hash('admin123')
+
+        if not admin_existente:
             cursor.execute(
                 "INSERT INTO usuarios (email, senha_hash, tipo) VALUES (%s, %s, 'admin')",
-                ('admin@patasemcasa.com', generate_password_hash('admin123'))
+                ('admin@patasemcasa.com', senha_admin_hash)
+            )
+        else:
+            cursor.execute(
+                "UPDATE usuarios SET tipo = 'admin', senha_hash = %s WHERE email = 'admin@patasemcasa.com'",
+                (senha_admin_hash,)
             )
 
-        # Popula Pets iniciais
+        # Popula Pets iniciais se estiver vazia
         cursor.execute("SELECT COUNT(*) FROM pets")
         if cursor.fetchone()[0] == 0:
             pets_iniciais = [
@@ -152,7 +177,7 @@ def init_db():
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, pets_iniciais)
 
-        # Popula Produtos iniciais da Loja (com placeholders SVG embutidos caso não haja foto ainda)
+        # Popula Produtos iniciais se estiver vazia
         cursor.execute("SELECT COUNT(*) FROM produtos")
         if cursor.fetchone()[0] == 0:
             img_racao_cao = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23E4F0EA'/%3E%3Ctext x='50%25' y='48%25' font-size='70' text-anchor='middle'%3E🦴%3C/text%3E%3Ctext x='50%25' y='72%25' font-family='sans-serif' font-size='20' font-weight='bold' fill='%232D4A3E' text-anchor='middle'%3ERação Cães%3C/text%3E%3C/svg%3E"
@@ -215,7 +240,7 @@ def listar_pets():
 def listar_produtos():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM produtos ORDER BY id ASC")
+    cursor.execute("SELECT * FROM produtos ORDER BY id DESC")
     registros = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -268,7 +293,7 @@ def login():
             conn.close()
             return jsonify({"erro": "Senha incorreta para este e-mail."}), 401
         usuario_id = usuario['id']
-        tipo = usuario['tipo']
+        tipo = usuario.get('tipo') or 'cliente'
     else:
         senha_hash = generate_password_hash(senha)
         tipo = 'cliente'
@@ -295,7 +320,7 @@ def logout():
 
 
 # ==========================================================
-# ADOÇÃO (COM ENDEREÇO E VACINAS)
+# ADOÇÃO E LOJA
 # ==========================================================
 
 @app.route('/api/adotar', methods=['POST'])
@@ -318,7 +343,6 @@ def registrar_adocao():
             "INSERT INTO adocoes (pet_id, usuario_id, endereco, vacinas) VALUES (%s, %s, %s, %s)",
             (pet_id, session['usuario_id'], endereco, vacinas)
         )
-        # Marca o pet como adotado para sair da lista de disponíveis
         cursor.execute("UPDATE pets SET adotado = TRUE WHERE id = %s", (pet_id,))
         conn.commit()
         return jsonify({"sucesso": True})
@@ -328,10 +352,6 @@ def registrar_adocao():
         cursor.close()
         conn.close()
 
-
-# ==========================================================
-# COMPRA NA LOJA
-# ==========================================================
 
 @app.route('/api/comprar', methods=['POST'])
 def registrar_compra():
@@ -364,7 +384,7 @@ def registrar_compra():
 
 
 # ==========================================================
-# PAINÉIS: CLIENTE E ADMINISTRATIVO
+# PAINÉIS: CLIENTE E ADMINISTRATIVO (COM CADASTRO DE PRODUTOS)
 # ==========================================================
 
 @app.route('/api/cliente/painel', methods=['GET'])
@@ -409,7 +429,6 @@ def painel_admin():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Todas as adoções com cliente e pet
     cursor.execute("""
         SELECT a.id, u.email AS cliente_email, p.nome AS pet_nome, a.endereco, a.vacinas, a.status_pet,
                DATE_FORMAT(a.data_registro, '%d/%m/%Y') AS data
@@ -420,7 +439,6 @@ def painel_admin():
     """)
     todas_adocoes = cursor.fetchall()
 
-    # Todas as compras
     cursor.execute("""
         SELECT c.id, u.email AS cliente_email, c.itens_resumo, c.valor_total,
                DATE_FORMAT(c.data_compra, '%d/%m/%Y %H:%i') AS data
@@ -432,16 +450,18 @@ def painel_admin():
     for c in todas_compras:
         c['valor_total'] = float(c['valor_total'])
 
-    # Estatísticas para o gráfico
+    cursor.execute("SELECT * FROM produtos ORDER BY id DESC")
+    todos_produtos = cursor.fetchall()
+    for prod in todos_produtos:
+        prod['preco'] = float(prod['preco'])
+
     cursor.execute("SELECT COUNT(*) AS total FROM pets WHERE adotado = FALSE")
     disponiveis = cursor.fetchone()['total']
 
     cursor.execute("SELECT COUNT(*) AS total FROM adocoes")
     adotados = cursor.fetchone()['total']
 
-    cursor.execute("""
-        SELECT p.grupos FROM adocoes a JOIN pets p ON a.pet_id = p.id
-    """)
+    cursor.execute("SELECT p.grupos FROM adocoes a JOIN pets p ON a.pet_id = p.id")
     grupos_adotados = cursor.fetchall()
     caes_adotados = sum(1 for g in grupos_adotados if 'cao' in g['grupos'])
     gatos_adotados = sum(1 for g in grupos_adotados if 'gato' in g['grupos'])
@@ -452,6 +472,7 @@ def painel_admin():
     return jsonify({
         "adocoes": todas_adocoes,
         "compras": todas_compras,
+        "produtos": todos_produtos,
         "grafico": {
             "total_adocoes": adotados,
             "pets_disponiveis": disponiveis,
@@ -459,6 +480,77 @@ def painel_admin():
             "gatos_adotados": gatos_adotados
         }
     })
+
+
+@app.route('/api/admin/produtos', methods=['POST'])
+def adicionar_produto():
+    if session.get('usuario_tipo') != 'admin':
+        return jsonify({"erro": "Acesso negado."}), 403
+
+    nome = request.form.get('nome', '').strip()
+    categoria = request.form.get('categoria', 'racao').strip()
+    animal = request.form.get('animal', 'cao').strip()
+    etiqueta_extra = request.form.get('etiqueta_extra', '').strip()
+    resumo = request.form.get('resumo', '').strip()
+    preco_str = request.form.get('preco', '').replace(',', '.').strip()
+
+    if not nome or not resumo or not preco_str:
+        return jsonify({"erro": "Preencha nome, descrição e preço do produto."}), 400
+
+    try:
+        preco = float(preco_str)
+    except ValueError:
+        return jsonify({"erro": "Preço inválido."}), 400
+
+    foto_file = request.files.get('foto')
+    if foto_file and foto_file.filename != '':
+        nome_seguro = secure_filename(foto_file.filename)
+        nome_unico = f"{uuid.uuid4().hex}_{nome_seguro}"
+        caminho_salvo = os.path.join(UPLOAD_PRODUTOS_FOLDER, nome_unico)
+        foto_file.save(caminho_salvo)
+        foto_url = f"/static/img/produtos/{nome_unico}"
+    else:
+        emoji = "🦴" if categoria == "racao" else "🎾"
+        label = "Ração" if categoria == "racao" else "Brinquedo"
+        foto_url = f"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23E4F0EA'/%3E%3Ctext x='50%25' y='48%25' font-size='70' text-anchor='middle'%3E{emoji}%3C/text%3E%3Ctext x='50%25' y='72%25' font-family='sans-serif' font-size='20' font-weight='bold' fill='%232D4A3E' text-anchor='middle'%3E{label}%3C/text%3E%3C/svg%3E"
+
+    grupos = f"{categoria},{animal}"
+    etiquetas_lista = [
+        "Ração" if categoria == "racao" else "Brinquedo",
+        "Cães" if animal == "cao" else ("Gatos" if animal == "gato" else "Cães e Gatos")
+    ]
+    if etiqueta_extra:
+        etiquetas_lista.append(etiqueta_extra)
+    etiquetas_str = ",".join(etiquetas_lista)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO produtos (nome, foto, grupos, etiquetas, resumo, preco)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (nome, foto_url, grupos, etiquetas_str, resumo, preco))
+        conn.commit()
+        return jsonify({"sucesso": True})
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/api/admin/produtos/<int:produto_id>', methods=['DELETE'])
+def remover_produto(produto_id):
+    if session.get('usuario_tipo') != 'admin':
+        return jsonify({"erro": "Acesso negado."}), 403
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM produtos WHERE id = %s", (produto_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({"sucesso": True})
 
 
 @app.route('/api/admin/status-pet', methods=['POST'])

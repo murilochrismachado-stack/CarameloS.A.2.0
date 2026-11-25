@@ -4,9 +4,9 @@
 let pets = [];
 let produtos = [];
 let carrinho = [];
-let usuario = null;       // { email, tipo }
-let petAberto = null;     // pet aberto no modal
-let petParaAdotar = null; // pet selecionado para o formulário de adoção
+let usuario = null;
+let petAberto = null;
+let petParaAdotar = null;
 let avisoLogin = "";
 
 const $ = (id) => document.getElementById(id);
@@ -21,7 +21,6 @@ function mostrarAba() {
   const nome = location.hash.replace("#", "");
   const ativa = abasValidas.includes(nome) ? nome : "sobre";
 
-  // Protege a aba de adoção caso nenhum pet esteja selecionado
   if (ativa === "adotar" && (!petParaAdotar || !usuario)) {
     location.hash = "#pets";
     return;
@@ -148,7 +147,6 @@ $("detalhe").addEventListener("click", (e) => {
   if (e.target === $("detalhe")) $("detalhe").close();
 });
 
-// Clique em "Quero adotar" -> Vai para login ou para a aba de endereço e vacinas
 $("detalhe-adotar").addEventListener("click", () => {
   if (!usuario) {
     avisoLogin = `Faça login para preencher o formulário de adoção de ${petAberto.nome}.`;
@@ -166,7 +164,6 @@ $("detalhe-adotar").addEventListener("click", () => {
   location.hash = "#adotar";
 });
 
-// Envio do Formulário de Adoção
 $("form-adotar").addEventListener("submit", async (e) => {
   e.preventDefault();
   const endereco = $("adotar-endereco").value.trim();
@@ -476,6 +473,25 @@ function renderizarPainelAdmin(dados) {
       listaCompras.appendChild(card);
     });
   }
+
+  // 4. Produtos cadastrados na loja
+  const listaProdutosAdmin = $("admin-lista-produtos");
+  if (listaProdutosAdmin && dados.produtos) {
+    listaProdutosAdmin.innerHTML = "";
+    dados.produtos.forEach((prod) => {
+      const card = document.createElement("div");
+      card.className = "cartao";
+      card.innerHTML = `
+        <h3>${prod.nome}</h3>
+        <p style="margin: 4px 0;">${prod.resumo}</p>
+        <b class="preco-destaque">${formatarMoeda(prod.preco)}</b>
+        <div style="margin-top: 10px;">
+          <button class="botao contorno" type="button" onclick="removerProdutoAdmin(${prod.id})">Remover da loja</button>
+        </div>
+      `;
+      listaProdutosAdmin.appendChild(card);
+    });
+  }
 }
 
 window.salvarStatusPet = async function (adocaoId) {
@@ -490,6 +506,43 @@ window.salvarStatusPet = async function (adocaoId) {
   });
   if (res.ok) {
     alert("Status de acompanhamento do pet atualizado!");
+  }
+};
+
+const formNovoProduto = $("form-novo-produto");
+if (formNovoProduto) {
+  formNovoProduto.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(formNovoProduto);
+    const aviso = $("admin-produto-aviso");
+
+    try {
+      const res = await fetch("/api/admin/produtos", {
+        method: "POST",
+        body: formData
+      });
+      const dados = await res.json();
+
+      if (res.ok && dados.sucesso) {
+        aviso.textContent = "Produto publicado na loja com sucesso!";
+        formNovoProduto.reset();
+        await carregarProdutos();
+        await carregarDadosPainel();
+      } else {
+        aviso.textContent = dados.erro || "Erro ao cadastrar produto.";
+      }
+    } catch (err) {
+      aviso.textContent = "Erro de conexão com o servidor.";
+    }
+  });
+}
+
+window.removerProdutoAdmin = async function (produtoId) {
+  if (!confirm("Deseja remover este produto da loja?")) return;
+  const res = await fetch(`/api/admin/produtos/${produtoId}`, { method: "DELETE" });
+  if (res.ok) {
+    await carregarProdutos();
+    await carregarDadosPainel();
   }
 };
 
